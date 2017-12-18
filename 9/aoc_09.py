@@ -7,7 +7,8 @@ def parse_groups(sequence, state=None):
         groups_score=0,
         opened_braces=0,
         is_garbage=False,
-        ignore_next=False
+        ignore_next=False,
+        garbage_size=0
     )
 
     for char in sequence:
@@ -26,14 +27,17 @@ def parse_groups(sequence, state=None):
                     state["is_garbage"] = False
                 elif char == "!":
                     state["ignore_next"] = True
+                else:
+                    state["garbage_size"] += 1
         else:
             state["ignore_next"] = False
 
-    return state["groups_count"], state["groups_score"]
+    return state["groups_count"], state["groups_score"], state["garbage_size"]
 
 
 count_groups = lambda x: parse_groups(x)[0]
 score_groups = lambda x: parse_groups(x)[1]
+garbage_size = lambda x: parse_groups(x)[2]
 
 
 # Tests
@@ -55,9 +59,18 @@ assert score_groups("{{<ab>},{<ab>},{<ab>},{<ab>}}") == 9
 assert score_groups("{{<!!>},{<!!>},{<!!>},{<!!>}}") == 9
 assert score_groups("{{<a!>},{<a!>},{<a!>},{<ab>}}") == 3
 
+assert garbage_size("<>") == 0
+assert garbage_size("<random characters>") == 17
+assert garbage_size("<<<<>") == 3
+assert garbage_size("<{!>}>") == 2
+assert garbage_size("<!!>") == 0
+assert garbage_size("<!!!>>") == 0
+assert garbage_size('<{o"i!a,<{i<a>') == 10
+
 
 # Solution
 with open("input.txt") as f:
     task_input = f.read().strip()
 
 print("Part 1 answer is {}".format(score_groups(task_input)))
+print("Part 2 answer is {}".format(garbage_size(task_input)))
